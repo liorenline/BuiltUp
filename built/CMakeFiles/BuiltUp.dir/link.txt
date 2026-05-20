@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/BuiltUp.dir/main.cpp.o CMakeFiles/BuiltUp.dir/cpu.cpp.o CMakeFiles/BuiltUp.dir/mem.cpp.o CMakeFiles/BuiltUp.dir/disk.cpp.o CMakeFiles/BuiltUp.dir/Logger.cpp.o CMakeFiles/BuiltUp.dir/AlertManager.cpp.o -o BuiltUp 

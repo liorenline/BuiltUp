@@ -1,0 +1,3 @@
+/home/lioren/CLionProjects/BuiltUp/built/CMakeFiles/BuiltUp.dir
+/home/lioren/CLionProjects/BuiltUp/built/CMakeFiles/edit_cache.dir
+/home/lioren/CLionProjects/BuiltUp/built/CMakeFiles/rebuild_cache.dir

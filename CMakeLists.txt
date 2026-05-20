@@ -8,4 +8,9 @@ add_executable(BuiltUp
         cpu.cpp
         mem.cpp
         disk.cpp
+        Logger.h
+        Logger.cpp
+        Logger.h
+        AlertManager.cpp
+        AlertManager.h
 )
