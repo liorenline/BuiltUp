@@ -173,8 +173,8 @@ int main() {
     MemReader  mem;
     DiskReader disk;
 
-    int    ticks   = 0;
-    int    alerts  = 0;
+    int ticks   = 0;
+    int alerts  = 0;
     double cpuSum  = 0.0;
     double cpuMax  = 0.0;
     double memSum  = 0.0;
