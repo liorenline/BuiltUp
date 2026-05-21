@@ -7,16 +7,14 @@
 #include <chrono>
 #include <ctime>
 #include <csignal>
-
-
 #include "cpu.hpp"
 #include "mem.h"
 #include "disk.h"
 
 const int    INTERVAL_SEC = 2;
-const double CPU_WARN     = 80.0;
-const double MEM_WARN     = 85.0;
-const double DISK_WARN    = 90.0;
+const double CPU_WARN  = 80.0;
+const double MEM_WARN = 85.0;
+const double DISK_WARN = 90.0;
 
 bool g_running = true;
 
@@ -70,25 +68,37 @@ void writeMetrics(const CpuInfo& c, const MemInfo& m,
     std::ofstream f(logFile(), std::ios::app);
     if (!f.is_open()) return;
 
-    f << "{\"ts\":\"" << currentIso() << "\","
-      << "\"cpu\":{\"cores\":" << c.cores
-      << ",\"pct\":" << std::fixed << std::setprecision(1) << c.percent << "},"
-      << "\"mem\":{\"total_kb\":" << m.total_kb
-      << ",\"used_kb\":" << m.used_kb
-      << ",\"pct\":" << std::fixed << std::setprecision(1) << m.percent << "}";
+    double totalGb = m.total_kb / (1024.0 * 1024.0);
+    double usedGb  = m.used_kb  / (1024.0 * 1024.0);
+
+    f << "{\n"
+      << "  \"ts\": \""    << currentIso() << "\",\n"
+      << "  \"cpu\": {\n"
+      << "    \"cores\": " << c.cores << ",\n"
+      << "    \"pct\": "   << std::fixed << std::setprecision(1) << c.percent << "\n"
+      << "  },\n"
+      << "  \"mem\": {\n"
+      << "    \"total_gb\": " << std::fixed << std::setprecision(2) << totalGb << ",\n"
+      << "    \"used_gb\": "  << std::fixed << std::setprecision(2) << usedGb  << ",\n"
+      << "    \"pct\": "      << std::fixed << std::setprecision(1) << m.percent << "\n"
+      << "  }";
 
     if (!disks.empty()) {
-        f << ",\"disks\":[";
+        f << ",\n  \"disks\": [";
         for (int i = 0; i < (int)disks.size(); ++i) {
             if (i) f << ",";
-            f << "{\"path\":\"" << escapeJson(disks[i].path) << "\""
-              << ",\"pct\":" << std::fixed << std::setprecision(1) << disks[i].percent
-              << ",\"free_bytes\":" << disks[i].free_bytes << "}";
+            f << "\n    {\n"
+              << "      \"path\": \""    << escapeJson(disks[i].path) << "\",\n"
+              << "      \"pct\": "       << std::fixed << std::setprecision(1) << disks[i].percent << ",\n"
+              << "      \"total_gb\": "  << std::fixed << std::setprecision(2) << (disks[i].total_bytes / 1073741824.0) << ",\n"
+              << "      \"used_gb\": "   << std::fixed << std::setprecision(2) << (disks[i].used_bytes  / 1073741824.0) << ",\n"
+              << "      \"free_gb\": "   << std::fixed << std::setprecision(2) << (disks[i].free_bytes  / 1073741824.0) << "\n"
+              << "    }";
         }
-        f << "]";
+        f << "\n  ]";
     }
 
-    f << ",\"warning\":" << (warn ? "true" : "false") << "}\n";
+    f << ",\n  \"warning\": " << (warn ? "true" : "false") << "\n}\n";
 }
 
 void writeAlert(const CpuInfo& c, const MemInfo& m,
@@ -96,31 +106,33 @@ void writeAlert(const CpuInfo& c, const MemInfo& m,
     std::ofstream f(alertFile(), std::ios::app);
     if (!f.is_open()) return;
 
-    f << "{\"ts\":\"" << currentIso() << "\",\"alerts\":[";
+    f << "{\n"
+      << "  \"ts\": \"" << currentIso() << "\",\n"
+      << "  \"alerts\": [";
 
     bool first = true;
     if (c.percent >= CPU_WARN) {
-        f << (first ? "" : ",")
-          << "{\"type\":\"cpu\",\"pct\":"
-          << std::fixed << std::setprecision(1) << c.percent << "}";
+        f << (first ? "\n" : ",\n")
+          << "    { \"type\": \"cpu\", \"pct\": "
+          << std::fixed << std::setprecision(1) << c.percent << " }";
         first = false;
     }
     if (m.percent >= MEM_WARN) {
-        f << (first ? "" : ",")
-          << "{\"type\":\"mem\",\"pct\":"
-          << std::fixed << std::setprecision(1) << m.percent << "}";
+        f << (first ? "\n" : ",\n")
+          << "    { \"type\": \"mem\", \"pct\": "
+          << std::fixed << std::setprecision(1) << m.percent << " }";
         first = false;
     }
     for (int i = 0; i < (int)disks.size(); ++i) {
         if (disks[i].percent >= DISK_WARN) {
-            f << (first ? "" : ",")
-              << "{\"type\":\"disk\",\"path\":\"" << escapeJson(disks[i].path) << "\""
-              << ",\"pct\":" << std::fixed << std::setprecision(1) << disks[i].percent << "}";
+            f << (first ? "\n" : ",\n")
+              << "    { \"type\": \"disk\", \"path\": \"" << escapeJson(disks[i].path) << "\""
+              << ", \"pct\": " << std::fixed << std::setprecision(1) << disks[i].percent << " }";
             first = false;
         }
     }
 
-    f << "]}\n";
+    f << "\n  ]\n}\n";
 }
 
 void printWarning(const CpuInfo& c, const MemInfo& m,
