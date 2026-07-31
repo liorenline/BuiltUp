@@ -1,6 +1,5 @@
 # ⚡ BuiltUp
 
-> 🚧 **Work in progress** — проект активно розробляється, деякі функції ще не завершені.
 
 A lightweight C++ console utility that monitors system resources in real time — CPU load, RAM usage, and disk space. Metrics are logged to a JSON file, and alerts are triggered when thresholds are exceeded.
 
